@@ -21,7 +21,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------+--------|
       KC_LSFT,    KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,        KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH, KC_RSFT, MO(_L1),
   //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------+--------|
-               KC_LALT, KC_LGUI,  KC_SPC,  KC_SPC,               KC_SPC,  KC_SPC,          KC_RGUI, KC_RALT 
+               KC_LALT, KC_LGUI,  LT(_L2, KC_LNG2),  KC_SPC,               LT(_L1, KC_LNG1),  KC_SPC,          KC_RGUI, KC_RALT
           //`---------------------------------------------|   |--------------------------------------------'
   ),
 
@@ -35,7 +35,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------+--------|
       _______, _______, _______, _______, _______, _______,     _______, _______,  KC_END, KC_PGDN, KC_DOWN, _______, _______,
   //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------+--------|
-               _______, _______, _______, _______,              _______, _______,          KC_STOP, _______ 
+               _______, _______, _______, _______,              _______, _______,          KC_STOP, _______
           //`---------------------------------------------|   |--------------------------------------------'
   ),
 
@@ -49,10 +49,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------+--------|
       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,     RGB_VAD, RGB_VAI, RGB_HUD, RGB_HUI, RGB_SAD, RGB_SAI, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------+--------|
-               XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,              XXXXXXX, XXXXXXX,          KC_STOP, XXXXXXX 
+               XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,              XXXXXXX, XXXXXXX,          KC_STOP, XXXXXXX
           //`---------------------------------------------|   |--------------------------------------------'
   ),
-  
+
   [_L3] = LAYOUT( /* Base */
   //,-----------------------------------------------------|   |--------------------------------------------------------------------------------.
       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,   QK_BOOT,
@@ -63,7 +63,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------+--------|
       XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,     XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,
   //|--------+--------+--------+--------+--------+--------|   |--------+--------+--------+--------+--------+--------+--------|
-               XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,              XXXXXXX, XXXXXXX,          XXXXXXX, XXXXXXX 
+               XXXXXXX, XXXXXXX, XXXXXXX, XXXXXXX,              XXXXXXX, XXXXXXX,          XXXXXXX, XXXXXXX
           //`---------------------------------------------|   |--------------------------------------------'
   )
 };
@@ -74,13 +74,13 @@ layer_state_t layer_state_set_user(layer_state_t state) {
 #ifdef RGBLIGHT_ENABLE
     switch (get_highest_layer(state)) {
     case _L1:
-      rgblight_sethsv_at(HSV_BLUE, 0);
+      rgblight_sethsv_at(HSV_CHARTREUSE, 0);
       break;
     case _L2:
-      rgblight_sethsv_at(HSV_RED, 0);
+      rgblight_sethsv_at(HSV_TEAL, 0);
       break;
     case _L3:
-      rgblight_sethsv_at(HSV_PURPLE, 0);
+      rgblight_sethsv_at(HSV_GOLD, 0);
       break;
     default: //  for any other layers, or the default layer
       rgblight_sethsv_at( 0, 0, 0, 0);
@@ -89,4 +89,57 @@ layer_state_t layer_state_set_user(layer_state_t state) {
     rgblight_set_effect_range( 1, 11);
 #endif
 return state;
+}
+
+uint16_t get_tapping_term(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case LT(_L1, KC_LNG1):
+        case LT(_L2, KC_LNG2):
+            return 100;
+        default:
+            return TAPPING_TERM;
+    }
+}
+
+bool get_retro_tapping(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case LT(_L1, KC_LNG1):
+        case LT(_L2, KC_SPC):
+            return true;
+        default:
+            return false;
+    }
+}
+
+bool get_permissive_hold(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case LCTL_T(KC_TAB):
+            return true;
+        default:
+            return false;
+    }
+}
+
+void post_process_record_user(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case MO(_L1):
+        case MO(_L2):
+        case LT(_L1, KC_LNG1):
+        case LT(_L2, KC_SPC):
+            update_tri_layer(_L1, _L2, _L3);
+            break;
+  }
+}
+
+bool get_hold_on_other_key_press(uint16_t keycode, keyrecord_t *record) {
+    switch (keycode) {
+        case QK_MOD_TAP ... QK_MOD_TAP_MAX:
+            if (keycode == LT(_L2, KC_SPC)) {
+                return false;
+            } else {
+                return true;
+            }
+        default:
+            return false;
+    }
 }
